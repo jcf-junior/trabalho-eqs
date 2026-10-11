@@ -1,4 +1,4 @@
-name: CD
+name: CI/CD
 
 on:
   push:
@@ -6,7 +6,25 @@ on:
       - main
 
 jobs:
-  deploy:
+  ci:
+    runs-on: [self-hosted, ci]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Tests
+        run: npm test
+
+  build:
     runs-on: [self-hosted, cd]
 
     steps:
@@ -26,3 +44,16 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/${{ github.repository }}:latest
+
+
+  deploy:
+    needs: cd
+    runs-on: [self-hosted, deploy]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and deploy
+        run: |
+          docker compose pull
+          docker compose up -d
