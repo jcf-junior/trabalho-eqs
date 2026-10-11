@@ -63,6 +63,7 @@ jobs:
   deploy:
     needs: build
     runs-on: [self-hosted, deploy]
+    environment: production
 
     permissions:
       contents: read
@@ -80,6 +81,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy to VM
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           docker compose pull
           docker compose up -d
