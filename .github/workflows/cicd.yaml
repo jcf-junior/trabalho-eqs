@@ -58,7 +58,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ghcr.io/trabalho_m2:latest
 
   deploy:
     needs: build
