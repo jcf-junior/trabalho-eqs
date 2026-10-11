@@ -1,0 +1,10 @@
+jobs:
+  deploy:
+    runs-on: [self-hosted, deploy]
+
+    steps:
+      - name: Deploy to VM
+        working-directory: /opt/trabalho-m2
+        run: |
+          docker compose pull
+          docker compose up -d

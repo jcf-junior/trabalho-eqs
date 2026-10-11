@@ -1,0 +1,35 @@
+services:
+  api:
+    image: ghcr.io/jcf-junior/trabalho_m2:latest
+    container_name: trabalho_m2-api
+    restart: unless-stopped
+
+    ports:
+      - "3000:3000"
+
+    depends_on:
+      - postgres
+
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: app
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+
+  postgres:
+    image: postgres:17
+    container_name: trabalho_m2-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+volumes:
+  postgres_data:
