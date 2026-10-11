@@ -11,10 +11,6 @@ permissions:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, cd]
-
-jobs:
-  deploy:
     runs-on: [self-hosted, deploy]
 
     steps:
