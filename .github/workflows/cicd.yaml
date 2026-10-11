@@ -46,7 +46,7 @@ jobs:
           tags: ghcr.io/${{ github.repository }}:latest
 
   deploy:
-    needs: cd
+    needs: build
     runs-on: [self-hosted, deploy]
 
     steps:
