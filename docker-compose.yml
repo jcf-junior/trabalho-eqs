@@ -1,6 +1,6 @@
 services:
   api:
-    image: ghcr.io/jcf-junior/trabalho_m2:latest
+    image: ${IMAGE:-ghcr.io/jcf-junior/trabalho_m2}:${IMAGE_TAG:-latest}
     container_name: trabalho_m2-api
     restart: unless-stopped
 
