@@ -1,0 +1,69 @@
+name: Tag and Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Ambiente de destino"
+        required: true
+        type: choice
+        options:
+          - preprod
+          - prod
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Git Semantic Version
+        id: semver
+        uses: PaulHatch/semantic-version@v6.0.2
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag image
+        run: |
+          docker pull ghcr.io/jcf-junior/trabalho_m2:latest
+
+          docker tag ghcr.io/jcf-junior/trabalho_m2:latest ghcr.io/jcf-junior/trabalho_m2:${{ inputs.environment }}
+          docker push ghcr.io/jcf-junior/trabalho_m2:${{ inputs.environment }}
+
+          docker tag ghcr.io/jcf-junior/trabalho_m2:latest ghcr.io/jcf-junior/trabalho_m2:${{ steps.semver.outputs.version_tag }}
+          docker push ghcr.io/jcf-junior/trabalho_m2:${{ steps.semver.outputs.version_tag }}
+
+  deploy:
+    needs: tag
+    runs-on: [self-hosted, deploy, vm-${{ inputs.environment }}]
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy to VM
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          IMAGE_TAG: ${{ inputs.environment }}
+        run: |
+          docker compose pull
+          docker compose up -d
