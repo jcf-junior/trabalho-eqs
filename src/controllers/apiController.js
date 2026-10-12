@@ -48,11 +48,54 @@ async function getProfessores(req, res) {
   }
 }
 
+async function getProfessorById(req, res) {
+  console.log("Incoming request from:", req.ip);
+
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      "SELECT * FROM professores WHERE id = $1;",
+      [id],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Professor não encontrado" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error("Database query failed:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
 async function getCursos(req, res) {
   console.log("Incoming request from:", req.ip);
   try {
     const result = await pool.query("SELECT * FROM cursos;");
     res.json(result.rows);
+  } catch (error) {
+    console.error("Database query failed:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+async function getCursoById(req, res) {
+  console.log("Incoming request from:", req.ip);
+
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query("SELECT * FROM cursos WHERE id = $1;", [
+      id,
+    ]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Curso não encontrado" });
+    }
+
+    res.json(result.rows[0]);
   } catch (error) {
     console.error("Database query failed:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -70,11 +113,36 @@ async function getDisciplinas(req, res) {
   }
 }
 
+async function getDisciplinaBySigla(req, res) {
+  console.log("Incoming request from:", req.ip);
+
+  try {
+    const { sigla } = req.params;
+
+    const result = await pool.query(
+      "SELECT * FROM disciplinas WHERE sigla = $1;",
+      [sigla],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Disciplina não encontrada" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error("Database query failed:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
 module.exports = {
   getHome,
   getAlunos,
   getAlunoById,
   getProfessores,
+  getProfessorById,
   getCursos,
+  getCursoById,
   getDisciplinas,
+  getDisciplinaBySigla,
 };
