@@ -12,7 +12,14 @@
     "lint": "eslint .",
     "setup": "npm ci && eslint . && prettier --write .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,ts,jsx,tsx}": [
+      "npm run lint",
+      "npm run format"
+    ]
   },
   "dependencies": {
     "express": "^5.3.0",
@@ -22,6 +29,8 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.12.0",
-    "globals": "^17.13.0"
+    "globals": "^17.13.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0"
   }
 }
