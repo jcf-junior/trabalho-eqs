@@ -1,0 +1,44 @@
+name: Postman Tests
+
+on:
+  pull_request:
+  push:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Postman Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Build local API image
+        run: docker build -t ghcr.io/jcf-junior/trabalho_m2:latest .
+
+      - name: Start services with Docker Compose
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          IMAGE_TAG: latest
+        run: docker compose up -d
+
+      - name: Wait for API readiness
+        run: |
+          until curl -s http://localhost:3333/ > /dev/null; do
+            echo "A aguardar pela API na porta 3333..."
+            sleep 2
+          done
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: Run Postman Tests
+        run: newman run postman-api-collection/collection.json
