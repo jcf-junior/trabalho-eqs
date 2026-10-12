@@ -27,6 +27,40 @@ function handleInsertError(res, error) {
   res.status(500).json({ error: "Internal server error" });
 }
 
+function handleDeleteError(res, error) {
+  if (error.code === FOREIGN_KEY_VIOLATION) {
+    return res
+      .status(409)
+      .json({ error: "Registo em uso por outros registos" });
+  }
+
+  if (
+    error.code === INVALID_TEXT_REPRESENTATION ||
+    error.code === NUMERIC_VALUE_OUT_OF_RANGE
+  ) {
+    return res.status(400).json({ error: "Dados inválidos" });
+  }
+
+  console.error("Database query failed:", error);
+  res.status(500).json({ error: "Internal server error" });
+}
+
+async function runInTransaction(work) {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+    const result = await work(client);
+    await client.query("COMMIT");
+    return result;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 async function getHome(req, res) {
   console.log("Incoming request from:", req.ip);
   res.json("Welcome to UniPVC Fake API!");
@@ -276,6 +310,112 @@ async function createInscricao(req, res) {
   }
 }
 
+async function deleteProfessor(req, res) {
+  console.log("Incoming request from:", req.ip);
+
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query("DELETE FROM professores WHERE id = $1;", [
+      id,
+    ]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Professor não encontrado" });
+    }
+
+    res.sendStatus(204);
+  } catch (error) {
+    handleDeleteError(res, error);
+  }
+}
+
+async function deleteCurso(req, res) {
+  console.log("Incoming request from:", req.ip);
+
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query("DELETE FROM cursos WHERE id = $1;", [id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Curso não encontrado" });
+    }
+
+    res.sendStatus(204);
+  } catch (error) {
+    handleDeleteError(res, error);
+  }
+}
+
+async function deleteDisciplina(req, res) {
+  console.log("Incoming request from:", req.ip);
+
+  const { sigla } = req.params;
+
+  try {
+    const result = await runInTransaction(async (client) => {
+      await client.query(
+        "DELETE FROM aluno_disciplinas WHERE disciplina_sigla = $1;",
+        [sigla],
+      );
+      return client.query("DELETE FROM disciplinas WHERE sigla = $1;", [sigla]);
+    });
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Disciplina não encontrada" });
+    }
+
+    res.sendStatus(204);
+  } catch (error) {
+    handleDeleteError(res, error);
+  }
+}
+
+async function deleteAluno(req, res) {
+  console.log("Incoming request from:", req.ip);
+
+  const { id } = req.params;
+
+  try {
+    const result = await runInTransaction(async (client) => {
+      await client.query("DELETE FROM aluno_disciplinas WHERE aluno_id = $1;", [
+        id,
+      ]);
+      return client.query("DELETE FROM alunos WHERE id = $1;", [id]);
+    });
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Aluno não encontrado" });
+    }
+
+    res.sendStatus(204);
+  } catch (error) {
+    handleDeleteError(res, error);
+  }
+}
+
+async function deleteInscricao(req, res) {
+  console.log("Incoming request from:", req.ip);
+
+  const { id, sigla } = req.params;
+
+  try {
+    const result = await pool.query(
+      "DELETE FROM aluno_disciplinas WHERE aluno_id = $1 AND disciplina_sigla = $2;",
+      [id, sigla],
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Inscrição não encontrada" });
+    }
+
+    res.sendStatus(204);
+  } catch (error) {
+    handleDeleteError(res, error);
+  }
+}
+
 module.exports = {
   getHome,
   getAlunos,
@@ -291,4 +431,9 @@ module.exports = {
   createDisciplina,
   createAluno,
   createInscricao,
+  deleteProfessor,
+  deleteCurso,
+  deleteDisciplina,
+  deleteAluno,
+  deleteInscricao,
 };
