@@ -10,6 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/index.js",
     "lint": "eslint .",
+    "setup": "npm ci && eslint . && prettier --write .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
