@@ -60,6 +60,33 @@
       ]
     },
     {
+      "name": "Get Aluno By Id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3333/alunos/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3333",
+          "path": [""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
       "name": "Get Professores",
       "request": {
         "method": "GET",
