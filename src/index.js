@@ -25,6 +25,17 @@ app.get("/data", async (req, res) => {
   }
 });
 
+app.get("/alunos", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM alunos;");
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Database query failed:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.listen(port, "0.0.0.0", () => {
   console.log(`API listening on port ${port}`);
 });
