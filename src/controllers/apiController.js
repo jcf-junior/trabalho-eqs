@@ -1,10 +1,12 @@
 const pool = require("../config/db");
 
 async function getHome(req, res) {
+  console.log("Incoming request from:", req.ip);
   res.json("Welcome to UniPVC Fake API!");
 }
 
 async function getAlunos(req, res) {
+  console.log("Incoming request from:", req.ip);
   try {
     const result = await pool.query("SELECT * FROM alunos;");
     res.json(result.rows);
@@ -15,6 +17,8 @@ async function getAlunos(req, res) {
 }
 
 async function getAlunoById(req, res) {
+  console.log("Incoming request from:", req.ip);
+
   try {
     const { id } = req.params;
 
@@ -34,6 +38,7 @@ async function getAlunoById(req, res) {
 }
 
 async function getProfessores(req, res) {
+  console.log("Incoming request from:", req.ip);
   try {
     const result = await pool.query("SELECT * FROM professores;");
     res.json(result.rows);
@@ -44,6 +49,7 @@ async function getProfessores(req, res) {
 }
 
 async function getCursos(req, res) {
+  console.log("Incoming request from:", req.ip);
   try {
     const result = await pool.query("SELECT * FROM cursos;");
     res.json(result.rows);
@@ -54,6 +60,7 @@ async function getCursos(req, res) {
 }
 
 async function getDisciplinas(req, res) {
+  console.log("Incoming request from:", req.ip);
   try {
     const result = await pool.query("SELECT * FROM disciplinas;");
     res.json(result.rows);
