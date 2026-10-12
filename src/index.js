@@ -12,11 +12,13 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD || "postgres",
 });
 
-app.get("/data", async (req, res) => {
+app.get("/", async (req, res) => {
+  res.json("Welcome to UniPVC Fake API!");
+});
+
+app.get("/alunos", async (req, res) => {
   try {
-    const result = await pool.query(
-      "SELECT id, username, age FROM users ORDER BY id",
-    );
+    const result = await pool.query("SELECT * FROM alunos;");
 
     res.json(result.rows);
   } catch (error) {
@@ -25,9 +27,31 @@ app.get("/data", async (req, res) => {
   }
 });
 
-app.get("/alunos", async (req, res) => {
+app.get("/professores", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM alunos;");
+    const result = await pool.query("SELECT * FROM professores;");
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Database query failed:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/cursos", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM cursos;");
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Database query failed:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/disciplinas", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM disciplinas;");
 
     res.json(result.rows);
   } catch (error) {
