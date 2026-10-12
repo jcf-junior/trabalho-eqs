@@ -15,9 +15,14 @@ permissions:
   contents: read
   packages: write
 
+env:
+  IMAGE: ghcr.io/jcf-junior/trabalho_m2
+
 jobs:
-  tag:
+  version:
     runs-on: ubuntu-latest
+    outputs:
+      version_tag: ${{ steps.semver.outputs.version_tag }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -28,6 +33,23 @@ jobs:
         id: semver
         uses: PaulHatch/semantic-version@v6.0.2
 
+  build:
+    needs: version
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Log in to GHCR
         uses: docker/login-action@v4
         with:
@@ -35,15 +57,40 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Tag image
+      - name: Build and push (${{ matrix.arch }})
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/${{ matrix.arch }}
+          push: true
+          provenance: false
+          tags: ${{ env.IMAGE }}:${{ needs.version.outputs.version_tag }}-${{ matrix.arch }}
+
+  tag:
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create multi-arch manifests
         run: |
-          docker pull ghcr.io/jcf-junior/trabalho_m2:latest
+          VERSION=${{ needs.version.outputs.version_tag }}
+          SRC_AMD64=$IMAGE:$VERSION-amd64
+          SRC_ARM64=$IMAGE:$VERSION-arm64
 
-          docker tag ghcr.io/jcf-junior/trabalho_m2:latest ghcr.io/jcf-junior/trabalho_m2:${{ inputs.environment }}
-          docker push ghcr.io/jcf-junior/trabalho_m2:${{ inputs.environment }}
+          docker buildx imagetools create -t $IMAGE:$VERSION $SRC_AMD64 $SRC_ARM64
+          docker buildx imagetools create -t $IMAGE:${{ inputs.environment }} $SRC_AMD64 $SRC_ARM64
 
-          docker tag ghcr.io/jcf-junior/trabalho_m2:latest ghcr.io/jcf-junior/trabalho_m2:${{ steps.semver.outputs.version_tag }}
-          docker push ghcr.io/jcf-junior/trabalho_m2:${{ steps.semver.outputs.version_tag }}
+      - name: Inspect result
+        run: docker buildx imagetools inspect $IMAGE:${{ inputs.environment }}
 
   deploy:
     needs: tag
