@@ -1,21 +1,24 @@
 name: CI
 
 on:
+  pull_request:
   push:
+    branches: [main]
+  workflow_call:
 
 permissions:
   contents: read
 
 jobs:
-  ci:
-    runs-on: [self-hosted, ci]
-
+  check:
+    name: Lint and format
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
@@ -26,5 +29,5 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Format check
+      - name: Check formatting
         run: npm run format:check

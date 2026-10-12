@@ -1,0 +1,82 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Ambiente de destino"
+        required: true
+        type: choice
+        options:
+          - preprod
+          - prod
+      version:
+        description: "Versão a instalar (ex.: v1.4.2)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/jcf-junior/trabalho_m2
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verificar versão e imagem multi-arch
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Versão inválida: '$VERSION' (esperado vX.Y.Z)"
+            exit 1
+          fi
+
+          OUT=$(docker buildx imagetools inspect "$IMAGE:$VERSION")
+          echo "$OUT"
+
+          echo "$OUT" | grep -q 'linux/amd64' || { echo "Falta a variante linux/amd64"; exit 1; }
+          echo "$OUT" | grep -q 'linux/arm64' || { echo "Falta a variante linux/arm64"; exit 1; }
+
+  deploy:
+    needs: validate
+    runs-on: [self-hosted, deploy, "vm-${{ inputs.environment }}"]
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout repository (na versão a instalar)
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.version }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy to VM
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          IMAGE_TAG: ${{ inputs.version }}
+        run: |
+          docker compose pull
+          docker compose up -d
+          echo "Deploy de ${IMAGE_TAG} em ${{ inputs.environment }}" >> "$GITHUB_STEP_SUMMARY"
