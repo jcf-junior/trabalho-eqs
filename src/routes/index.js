@@ -18,4 +18,10 @@ router.post("/disciplinas", apiController.createDisciplina);
 router.post("/alunos", apiController.createAluno);
 router.post("/alunos/:id/disciplinas", apiController.createInscricao);
 
+router.delete("/professores/:id", apiController.deleteProfessor);
+router.delete("/cursos/:id", apiController.deleteCurso);
+router.delete("/disciplinas/:sigla", apiController.deleteDisciplina);
+router.delete("/alunos/:id", apiController.deleteAluno);
+router.delete("/alunos/:id/disciplinas/:sigla", apiController.deleteInscricao);
+
 module.exports = router;
