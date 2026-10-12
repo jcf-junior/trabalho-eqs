@@ -1,65 +1,53 @@
-const express = require("express");
-const { Pool } = require("pg");
+const pool = require("../config/db");
 
-const app = express();
-const port = process.env.PORT || 3333;
-
-const pool = new Pool({
-  host: process.env.DB_HOST || "localhost",
-  port: Number(process.env.DB_PORT || 5432),
-  database: process.env.DB_NAME || "app",
-  user: process.env.DB_USER || "postgres",
-  password: process.env.DB_PASSWORD || "postgres",
-});
-
-app.get("/", async (req, res) => {
+async function getHome(req, res) {
   res.json("Welcome to UniPVC Fake API!");
-});
+}
 
-app.get("/alunos", async (req, res) => {
+async function getAlunos(req, res) {
   try {
     const result = await pool.query("SELECT * FROM alunos;");
-
     res.json(result.rows);
   } catch (error) {
     console.error("Database query failed:", error);
     res.status(500).json({ error: "Internal server error" });
   }
-});
+}
 
-app.get("/professores", async (req, res) => {
+async function getProfessores(req, res) {
   try {
     const result = await pool.query("SELECT * FROM professores;");
-
     res.json(result.rows);
   } catch (error) {
     console.error("Database query failed:", error);
     res.status(500).json({ error: "Internal server error" });
   }
-});
+}
 
-app.get("/cursos", async (req, res) => {
+async function getCursos(req, res) {
   try {
     const result = await pool.query("SELECT * FROM cursos;");
-
     res.json(result.rows);
   } catch (error) {
     console.error("Database query failed:", error);
     res.status(500).json({ error: "Internal server error" });
   }
-});
+}
 
-app.get("/disciplinas", async (req, res) => {
+async function getDisciplinas(req, res) {
   try {
     const result = await pool.query("SELECT * FROM disciplinas;");
-
     res.json(result.rows);
   } catch (error) {
     console.error("Database query failed:", error);
     res.status(500).json({ error: "Internal server error" });
   }
-});
+}
 
-app.listen(port, "0.0.0.0", () => {
-  console.log(`API listening on port ${port}`);
-});
+module.exports = {
+  getHome,
+  getAlunos,
+  getProfessores,
+  getCursos,
+  getDisciplinas,
+};
