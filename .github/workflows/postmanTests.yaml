@@ -1,0 +1,62 @@
+name: Postman Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Postman Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start PostgreSQL Database
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: docker compose up -d postgres
+
+      - name: Wait for PostgreSQL Health
+        run: |
+          until docker exec trabalho_m2-db pg_isready -U postgres -d app; do
+            echo "A aguardar pelo PostgreSQL..."
+            sleep 2
+          done
+
+      - name: Start API in background
+        env:
+          PORT: 3333
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: app
+          DB_USER: postgres
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: node app.js &
+
+      - name: Wait for API readiness
+        run: |
+          until curl -s http://localhost:3333/ > /dev/null; do
+            echo "A aguardar pela API na porta 3333..."
+            sleep 2
+          done
+
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: Run Postman Tests
+        run: newman run postman-api-collection/colection.json
