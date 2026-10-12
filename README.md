@@ -8,7 +8,7 @@
 
 ## Integrar Postman e DevOps
 
-API REST com dados fictícios da universidade Universidade Politécnica de Viana do Castelo (UniPVC). 
+API REST com dados fictícios da universidade Universidade Politécnica de Viana do Castelo (UniPVC).
 
 A API usa Node, Express e PostgreSQL. Uma collection do Postman testa a API na pipeline de GitHub Actions, com o Newman CLI.
 
