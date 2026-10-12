@@ -17,8 +17,12 @@ jobs:
   ci:
     uses: ./.github/workflows/ci.yaml
 
+  postman:
+    uses: ./.github/workflows/postmanTests.yaml
+    secrets: inherit
+
   version:
-    needs: ci
+    needs: [ci, postman]
     runs-on: ubuntu-latest
     outputs:
       version_tag: ${{ steps.semver.outputs.version_tag }}
