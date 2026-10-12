@@ -47,7 +47,7 @@ jobs:
 
   deploy:
     needs: tag
-    runs-on: [self-hosted, deploy, vm-${{ inputs.environment }}]
+    runs-on: [self-hosted, deploy, "vm-${{ inputs.environment }}"]
     environment: ${{ inputs.environment }}
     steps:
       - name: Checkout repository
