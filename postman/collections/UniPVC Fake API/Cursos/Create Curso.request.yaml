@@ -1,0 +1,30 @@
+$kind: http-request
+url: "{{baseUrl}}/cursos"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nome": "Curso Teste",
+      "sigla": "C{{runId}}",
+      "professor_coordenador_id": {{professorId}},
+      "tipo": "Licenciatura"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 201", function () {
+          pm.response.to.have.status(201);
+      });
+      const curso = pm.response.json();
+
+      pm.test("Response contains the created curso", function () {
+          pm.expect(curso.id).to.be.a("number");
+          pm.expect(curso.sigla).to.eql("C" + pm.collectionVariables.get("runId"));
+      });
+
+      pm.collectionVariables.set("cursoId", curso.id);
+    language: text/javascript
+order: 1000
