@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{baseUrl}}/disciplinas"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "sigla": "SIGLAMUITOLONGA",
+      "nome": "Disciplina Teste",
+      "professor_responsavel_id": {{professorId}}
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 400", function () {
+          pm.response.to.have.status(400);
+      });
+      pm.test("Error message is correct", function () {
+          pm.expect(pm.response.json().error).to.eql("Dados inválidos");
+      });
+    language: text/javascript
+order: 3000

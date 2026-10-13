@@ -1,0 +1,9 @@
+$kind: collection
+description: ""
+variables:
+  baseUrl: http://localhost:3333
+  runId: ""
+  professorId: ""
+  cursoId: ""
+  disciplinaSigla: ""
+  alunoId: ""

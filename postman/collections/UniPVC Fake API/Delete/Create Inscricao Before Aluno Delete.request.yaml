@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseUrl}}/alunos/{{alunoId}}/disciplinas"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "sigla": "BD"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 201", function () {
+          pm.response.to.have.status(201);
+      });
+    language: text/javascript
+order: 8000

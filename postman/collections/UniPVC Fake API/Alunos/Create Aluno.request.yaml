@@ -1,0 +1,29 @@
+$kind: http-request
+url: "{{baseUrl}}/alunos"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nome": "Aluno Teste",
+      "curso_id": {{cursoId}},
+      "email": "aluno.{{runId}}@unipvc.pt"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 201", function () {
+          pm.response.to.have.status(201);
+      });
+      const aluno = pm.response.json();
+
+      pm.test("Response contains the created aluno", function () {
+          pm.expect(aluno.id).to.be.a("number");
+          pm.expect(aluno.curso_id).to.eql(pm.collectionVariables.get("cursoId"));
+      });
+
+      pm.collectionVariables.set("alunoId", aluno.id);
+    language: text/javascript
+order: 1000

@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{baseUrl}}/alunos/{{alunoId}}/disciplinas"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "sigla": "{{disciplinaSigla}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 201", function () {
+          pm.response.to.have.status(201);
+      });
+      pm.test("Response contains the created inscricao", function () {
+          const inscricao = pm.response.json();
+          pm.expect(inscricao.aluno_id).to.eql(pm.collectionVariables.get("alunoId"));
+          pm.expect(inscricao.disciplina_sigla).to.eql(pm.collectionVariables.get("disciplinaSigla"));
+      });
+    language: text/javascript
+order: 5000

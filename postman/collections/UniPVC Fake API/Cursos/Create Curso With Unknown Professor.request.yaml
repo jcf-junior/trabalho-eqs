@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{baseUrl}}/cursos"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nome": "Curso Teste",
+      "sigla": "X{{runId}}",
+      "professor_coordenador_id": 999999,
+      "tipo": "Licenciatura"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 400", function () {
+          pm.response.to.have.status(400);
+      });
+      pm.test("Error message is correct", function () {
+          pm.expect(pm.response.json().error).to.eql("Referência inválida");
+      });
+    language: text/javascript
+order: 3000

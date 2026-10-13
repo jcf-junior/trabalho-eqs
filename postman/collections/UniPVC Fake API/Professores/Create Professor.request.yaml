@@ -1,0 +1,33 @@
+$kind: http-request
+url: "{{baseUrl}}/professores"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nome": "Professor Teste",
+      "habilitacoes": "Doutoramento",
+      "email": "professor.{{runId}}@unipvc.pt"
+    }
+scripts:
+  - type: beforeRequest
+    code: pm.collectionVariables.set("runId", String(Date.now()).slice(-6));
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 201", function () {
+          pm.response.to.have.status(201);
+      });
+      const professor = pm.response.json();
+
+      pm.test("Response contains the created professor", function () {
+          pm.expect(professor.id).to.be.a("number");
+          pm.expect(professor.nome).to.eql("Professor Teste");
+          pm.expect(professor.habilitacoes).to.eql("Doutoramento");
+      });
+
+      pm.collectionVariables.set("professorId", professor.id);
+    language: text/javascript
+order: 1000
