@@ -12,7 +12,7 @@ API REST com dados fictícios da universidade Universidade Politécnica de Viana
 
 A API usa Node, Express e PostgreSQL. Uma collection do Postman testa a API na pipeline de GitHub Actions, com o Newman CLI.
 
-## Requisitos
+### Requisitos
 
 - [Git](https://git-scm.com/)
 - [Node.js 22](https://nodejs.org/) e npm
